@@ -193,7 +193,6 @@ int task_yield(task_t *task)
     return 0;
 }
 
-
 int task_suspend(task_t *task)
 {
     if (task == NULL) {
@@ -215,7 +214,7 @@ int fd_suspend(task_t *task, int fd)
     return 0;
 }
 
-int task_resume(task_t *task)
+int task_wake(task_t *task)
 {
     if (task == NULL) {
         return -1;
@@ -233,5 +232,5 @@ int fd_wake(pool_t *pool, int fd)
     if (pool == NULL || fd < 0) {
         return -1;
     }
-    return task_resume(pool->blocked_io_set[fd]);
+    return task_wake(pool->blocked_io_set[fd]);
 }

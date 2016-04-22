@@ -3,18 +3,18 @@
 
 #include "coroutine.h"
 
-struct TcpServer
+typedef struct
 {
     int socket;
 
     void(*handle)(task_t *, void *);
-};
+} tcp_server;
 
-struct TcpServer *create_tcp_server(const char *ip, int port, void(*handle)(task_t *, void *));
+tcp_server *create_tcp_server(const char *ip, int port, void(*handle)(task_t *, void *));
 
-void free_tcp_server(struct TcpServer *server);
+void free_tcp_server(tcp_server *server);
 
-void run_tcp_server(pool_t *sch, struct TcpServer *server);
+void run_tcp_server(pool_t *sch, tcp_server *server);
 
 
 #endif

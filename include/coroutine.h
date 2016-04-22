@@ -72,7 +72,7 @@ int task_suspend(task_t *tsk);
 
 int task_yield(task_t *tsk);
 
-int task_resume(task_t *task);
+int task_wake(task_t *task);
 
 int fd_suspend(task_t *task, int fd);
 

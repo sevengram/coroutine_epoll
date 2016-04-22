@@ -13,12 +13,12 @@
 
 #define MAX_CONNECTION  (1024*64)
 
-struct TcpServer *create_tcp_server(const char *ip, int port, void(*handle)(task_t *, void *))
+tcp_server *create_tcp_server(const char *ip, int port, void(*handle)(task_t *, void *))
 {
     struct sockaddr_in server_address;
     in_addr_t server_ip;
     int optval = 0;
-    struct TcpServer *server = calloc(1, sizeof(struct TcpServer));
+    tcp_server *server = calloc(1, sizeof(tcp_server));
 
     if (!ip) {
         server_ip = htonl(INADDR_ANY);
@@ -55,24 +55,21 @@ struct TcpServer *create_tcp_server(const char *ip, int port, void(*handle)(task
     return server;
 }
 
-void free_tcp_server(struct TcpServer *server)
+void free_tcp_server(tcp_server *server)
 {
     close(server->socket);
     free(server);
 }
 
-void run_tcp_server(pool_t *pl, struct TcpServer *server)
+void run_tcp_server(pool_t *pl, tcp_server *server)
 {
     struct epoll_event ev;
     struct epoll_event *events;
     struct sockaddr_in remote;
     socklen_t remote_len;
     int nfds;
-
     assert(listen(server->socket, MAX_CONNECTION) == 0);
-
     assert((pl->epoll_fd = epoll_create(32)) >= 0);
-
     ev.events = EPOLLIN;
     ev.data.fd = server->socket;
     assert(epoll_ctl(pl->epoll_fd, EPOLL_CTL_ADD, server->socket, &ev) >= 0);
@@ -82,8 +79,8 @@ void run_tcp_server(pool_t *pl, struct TcpServer *server)
     while (1) {
         nfds = epoll_wait(pl->epoll_fd, events, MAX_EVENT_SIZE, -1);
 
-        int i = 0;
-        for (; i < nfds; ++i) {
+        int i;
+        for (i = 0; i < nfds; ++i) {
             if (events[i].data.fd == server->socket) {
                 int *client_socket = malloc(sizeof(int));
                 *client_socket = accept(server->socket, (struct sockaddr *) &remote, &remote_len);
@@ -100,9 +97,7 @@ void run_tcp_server(pool_t *pl, struct TcpServer *server)
                     free(client_socket);
                     continue;
                 }
-
-                task_t *task = task_create(server->handle, (void *) client_socket);
-                task_add(pl, task);
+                task_add(pl, task_create(server->handle, (void *) client_socket));
             } else {
                 epoll_ctl(pl->epoll_fd, EPOLL_CTL_DEL, events[i].data.fd, NULL);
                 fd_wake(pl, events[i].data.fd);

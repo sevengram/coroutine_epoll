@@ -25,7 +25,7 @@ void *func(void *index)
     int clientfd = Open_clientfd("127.0.0.1", 12400);
 
     int i;
-    for (i = 0; i < 100; ++i) {
+    for (i = 0; i < 1000; ++i) {
         Rio_writen(clientfd, msg, 5);
         Rio_readn(clientfd, rbuf, 5);
     }

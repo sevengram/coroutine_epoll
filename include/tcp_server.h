@@ -7,7 +7,7 @@ typedef struct
 {
     int socket;
 
-    void(*handle)(task_t *, void *);
+    void (*handle)(task_t *, void *);
 } tcp_server;
 
 tcp_server *create_tcp_server(const char *ip, int port, void(*handle)(task_t *, void *));

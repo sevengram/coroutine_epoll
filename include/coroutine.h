@@ -5,8 +5,7 @@
 #include <semaphore.h>
 #include <ucontext.h>
 
-#define STACK_SIZE    (4096*32)
-#define MAX_EVENT_SIZE  (1024*64)
+#define STACK_SIZE      (4096*32)
 
 enum TASK_STATUS
 {
@@ -52,30 +51,31 @@ typedef struct pool
     size_t size;
     size_t index;
     int epoll_fd;
+    pthread_t main_tid;
     schedule_t **threads;
     task_t **blocked_io_set;
 } pool_t;
 
-pool_t *pool_create(int thread_num);
+pool_t *create_pool(int thread_num);
 
-void pool_free(pool_t *pl);
+void free_pool(pool_t *pl);
 
-void pool_start(pool_t *pl);
+void open_pool(pool_t *pl);
 
-void pool_stop(pool_t *pl);
+void close_pool(pool_t *pl);
 
-task_t *task_create(void (*func)(task_t *, void *), void *arg);
+task_t *create_task(void (*func)(task_t *, void *), void *arg);
 
-int task_add(pool_t *pl, task_t *tsk);
+int add_task(pool_t *pl, task_t *tsk);
 
-int task_suspend(task_t *tsk);
+int suspend_task(task_t *tsk);
 
-int task_yield(task_t *tsk);
+int yield_task(task_t *tsk);
 
-int task_wake(task_t *task);
+int wake_task(task_t *task);
 
-int fd_suspend(task_t *task, int fd);
+int suspend_fd(task_t *task, int fd);
 
-int fd_wake(pool_t *pl, int fd);
+int wake_fd(pool_t *pl, int fd);
 
 #endif

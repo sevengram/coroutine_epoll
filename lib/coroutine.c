@@ -8,7 +8,7 @@
 #define THREAD_LIMIT    256
 
 
-pool_t *pool_create(int thread_nums)
+pool_t *create_pool(int thread_nums)
 {
     if (thread_nums <= 0 || thread_nums > THREAD_LIMIT) {
         return NULL;
@@ -37,7 +37,7 @@ pool_t *pool_create(int thread_nums)
     return pl;
 }
 
-void pool_free(pool_t *pool)
+void free_pool(pool_t *pool)
 {
     schedule_t *sch;
     int i;
@@ -88,7 +88,7 @@ void *schedule_run(void *arg)
     }
 }
 
-void pool_start(pool_t *pl)
+void open_pool(pool_t *pl)
 {
     int i;
     for (i = 0; i < pl->size; ++i) {
@@ -96,7 +96,7 @@ void pool_start(pool_t *pl)
     }
 }
 
-void pool_stop(pool_t *pl)
+void close_pool(pool_t *pl)
 {
     pl->stop = 1;
 
@@ -120,7 +120,7 @@ void pool_stop(pool_t *pl)
     }
 }
 
-int task_detach(task_t *task)
+int remove_task(task_t *task)
 {
     if (task == NULL) {
         return -1;
@@ -136,7 +136,7 @@ void task_entry(task_t *task)
 {
     task->func(task, task->arg);
     task->status = DEAD;
-    task_detach(task);
+    remove_task(task);
     schedule_t *sch = task->sch;
     if (sch->stop) {
         int sval;
@@ -148,7 +148,7 @@ void task_entry(task_t *task)
     swapcontext(&task->ctx, &sch->mctx);
 }
 
-task_t *task_create(void (*func)(task_t *, void *), void *arg)
+task_t *create_task(void (*func)(task_t *, void *), void *arg)
 {
     task_t *ptask = calloc(1, sizeof(task_t));
     ptask->entry = task_entry;
@@ -158,7 +158,7 @@ task_t *task_create(void (*func)(task_t *, void *), void *arg)
     return ptask;
 }
 
-int task_add(pool_t *pool, task_t *task)
+int add_task(pool_t *pool, task_t *task)
 {
     if (pool == NULL || task == NULL || pool->stop) {
         return -1;
@@ -178,7 +178,7 @@ int task_add(pool_t *pool, task_t *task)
     return 0;
 }
 
-int task_yield(task_t *task)
+int yield_task(task_t *task)
 {
     if (task == NULL) {
         return -1;
@@ -193,7 +193,7 @@ int task_yield(task_t *task)
     return 0;
 }
 
-int task_suspend(task_t *task)
+int suspend_task(task_t *task)
 {
     if (task == NULL) {
         return -1;
@@ -204,17 +204,17 @@ int task_suspend(task_t *task)
     return 0;
 }
 
-int fd_suspend(task_t *task, int fd)
+int suspend_fd(task_t *task, int fd)
 {
     if (task == NULL || fd < 0) {
         return -1;
     }
-    task_suspend(task);
+    suspend_task(task);
     task->sch->mpool->blocked_io_set[fd] = task;
     return 0;
 }
 
-int task_wake(task_t *task)
+int wake_task(task_t *task)
 {
     if (task == NULL) {
         return -1;
@@ -227,10 +227,10 @@ int task_wake(task_t *task)
     return 0;
 }
 
-int fd_wake(pool_t *pool, int fd)
+int wake_fd(pool_t *pool, int fd)
 {
     if (pool == NULL || fd < 0) {
         return -1;
     }
-    return task_wake(pool->blocked_io_set[fd]);
+    return wake_task(pool->blocked_io_set[fd]);
 }

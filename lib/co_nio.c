@@ -4,7 +4,7 @@
 #include <sys/epoll.h>
 #include <sys/socket.h>
 
-#include "conio.h"
+#include "co_nio.h"
 
 int fdnoblock(int fd)
 {
@@ -19,7 +19,7 @@ ssize_t co_write(task_t *task, int fd, const char *buf, size_t nbyte)
             return write_byte;
         }
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
-            fd_suspend(task, fd);
+            suspend_fd(task, fd);
             int epoll_fd = task->sch->mpool->epoll_fd;
             struct epoll_event ev;
             ev.events = EPOLLOUT | EPOLLONESHOT | EPOLLET;
@@ -41,9 +41,8 @@ ssize_t co_read(task_t *task, int fd, char *buf, size_t nbyte)
         if (read_byte >= 0) {
             return read_byte;
         }
-
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
-            fd_suspend(task, fd);
+            suspend_fd(task, fd);
 
             int epoll_fd = task->sch->mpool->epoll_fd;
             struct epoll_event ev;
@@ -97,7 +96,7 @@ ssize_t co_send(task_t *task, int fd, const char *buf, size_t len, int flags)
             return send_byte;
         }
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
-            fd_suspend(task, fd);
+            suspend_fd(task, fd);
 
             int epoll_fd = task->sch->mpool->epoll_fd;
             struct epoll_event ev;
@@ -121,7 +120,7 @@ ssize_t co_recv(task_t *task, int fd, char *buf, size_t len, int flags)
             return recv_byte;
         }
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
-            fd_suspend(task, fd);
+            suspend_fd(task, fd);
 
             int epoll_fd = task->sch->mpool->epoll_fd;
             struct epoll_event ev;
@@ -146,7 +145,7 @@ ssize_t co_sendto(task_t *task, int sockfd, const char *buf, size_t len, int fla
             return send_byte;
         }
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
-            fd_suspend(task, sockfd);
+            suspend_fd(task, sockfd);
 
             int epoll_fd = task->sch->mpool->epoll_fd;
             struct epoll_event ev;
@@ -171,7 +170,7 @@ ssize_t co_recvfrom(task_t *task, int sockfd, char *buf, size_t len, int flags,
             return recv_byte;
         }
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
-            fd_suspend(task, sockfd);
+            suspend_fd(task, sockfd);
 
             int epoll_fd = task->sch->mpool->epoll_fd;
             struct epoll_event ev;

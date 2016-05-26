@@ -10,7 +10,7 @@
 #include <pthread.h>
 #include "pt_server.h"
 
-#define MAX_CONNECTION  (1024*64)
+#define MAX_CONNECTION  (1024*128)
 
 pt_server *create_pt_server(const char *ip, int port, void *(*handle)(void *))
 {
@@ -65,7 +65,7 @@ void run_pt_server(pt_server *server)
     int epfd;
     int nfds;
     assert(listen(server->socket, MAX_CONNECTION) == 0);
-    assert((epfd = epoll_create(32)) >= 0);
+    assert((epfd = epoll_create(128)) >= 0);
     ev.events = EPOLLIN;
     ev.data.fd = server->socket;
     assert(epoll_ctl(epfd, EPOLL_CTL_ADD, server->socket, &ev) >= 0);
@@ -92,6 +92,4 @@ void run_pt_server(pt_server *server)
     }
     free(events);
     close(epfd);
-
-
 }

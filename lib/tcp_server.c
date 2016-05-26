@@ -10,7 +10,7 @@
 #include "co_nio.h"
 #include "tcp_server.h"
 
-#define MAX_CONNECTION  (1024*64)
+#define MAX_CONNECTION  (1024*128)
 
 tcp_server *create_tcp_server(const char *ip, int port, void(*handle)(task_t *, void *))
 {
@@ -68,7 +68,7 @@ void run_tcp_server(pool_t *pl, tcp_server *server)
     socklen_t remote_len;
     int nfds;
     assert(listen(server->socket, MAX_CONNECTION) == 0);
-    assert((pl->epoll_fd = epoll_create(32)) >= 0);
+    assert((pl->epoll_fd = epoll_create(128)) >= 0);
     ev.events = EPOLLIN;
     ev.data.fd = server->socket;
     assert(epoll_ctl(pl->epoll_fd, EPOLL_CTL_ADD, server->socket, &ev) >= 0);
@@ -85,6 +85,7 @@ void run_tcp_server(pool_t *pl, tcp_server *server)
 
                 if (*client_socket < 0) {
                     printf("accept client connection fail!\n");
+                    fflush(stdout);
                     free(client_socket);
                     continue;
                 }

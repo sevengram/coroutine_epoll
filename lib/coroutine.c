@@ -4,7 +4,7 @@
 
 #include "coroutine.h"
 
-#define TASK_LIMIT   (1024*64)
+#define TASK_LIMIT   (1024*128)
 #define THREAD_LIMIT    256
 
 

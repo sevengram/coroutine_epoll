@@ -744,8 +744,9 @@ int open_clientfd(char *hostname, int port)
     struct hostent *hp;
     struct sockaddr_in serveraddr;
 
-    if ((clientfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    if ((clientfd = socket(AF_INET, SOCK_STREAM, 0)) < 0){
         return -1; /* check errno for cause of error */
+    }
 
     /* Fill in the server's IP address and port */
     if ((hp = gethostbyname(hostname)) == NULL)
@@ -757,8 +758,10 @@ int open_clientfd(char *hostname, int port)
     serveraddr.sin_port = htons(port);
 
     /* Establish a connection with the server */
-    if (connect(clientfd, (SA *) &serveraddr, sizeof(serveraddr)) < 0)
+    if (connect(clientfd, (SA *) &serveraddr, sizeof(serveraddr)) < 0) {
+        printf("%d\n", errno);
         return -1;
+    }
     return clientfd;
 }
 /* $end open_clientfd */

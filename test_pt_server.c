@@ -9,6 +9,8 @@ struct tms tmsstart, tmsend;
 
 clock_t start, end;
 
+int request_count = 0;
+
 void *handle(void *arg)
 {
     int k = (int) __sync_fetch_and_add(&n, 1);
@@ -21,13 +23,16 @@ void *handle(void *arg)
     while (Rio_readn(fd, rbuf, 5) != 0) {
         Rio_writen(fd, msg, 5);
     }
-    if (k == 999) {
+    if (k == request_count - 1) {
         long tps;
+        double rt, ut, st;
         end = times(&tmsend);
         tps = sysconf(_SC_CLK_TCK);
-        printf("real:%.3f\n", (end - start) / (double) tps);
-        printf("user:%.3f\n", (tmsend.tms_utime - tmsstart.tms_utime) / (double) tps);
-        printf("system:%.3f\n", (tmsend.tms_stime - tmsstart.tms_stime) / (double) tps);
+        rt = (end - start) / (double) tps;
+        ut = (tmsend.tms_utime - tmsstart.tms_utime) / (double) tps;
+        st = (tmsend.tms_stime - tmsstart.tms_stime) / (double) tps;
+        printf("%.5f, %.5f, %.5f\n", rt, ut, st);
+        fflush(stdout);
         n = 0;
     }
     close(fd);
@@ -35,8 +40,9 @@ void *handle(void *arg)
     return 0;
 }
 
-int main()
+int main(int argc, char **argv)
 {
+    request_count = atoi(argv[1]);
     const char *server_ip = "127.0.0.1";
     pt_server *server = create_pt_server(server_ip, 12400, handle);
     run_pt_server(server);
